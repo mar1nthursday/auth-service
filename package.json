@@ -2,6 +2,7 @@
   "name": "auth-service",
   "version": "0.1.0",
   "description": "Secure authentication service (JWT + argon2 + 2FA) built as a security-focused portfolio project",
+  "license": "MIT",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",

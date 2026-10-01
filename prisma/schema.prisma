@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String    @id @default(uuid())
+  email               String    @unique
+  passwordHash        String
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  totpSecret          String?
+  totpEnabled         Boolean   @default(false)
+  createdAt           DateTime  @default(now())
+
+  refreshTokens       RefreshToken[]
+  securityEvents      SecurityEvent[]
+  passwordResetTokens PasswordResetToken[]
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+enum SecurityEventType {
+  REGISTER
+  LOGIN_SUCCESS
+  LOGIN_FAILURE
+  ACCOUNT_LOCKED
+  REFRESH_TOKEN_REUSE
+  LOGOUT
+  TWO_FACTOR_ENABLED
+  TWO_FACTOR_DISABLED
+  TWO_FACTOR_FAILURE
+  PASSWORD_RESET_REQUESTED
+  PASSWORD_RESET_COMPLETED
+}
+
+model SecurityEvent {
+  id        String            @id @default(uuid())
+  type      SecurityEventType
+  userId    String?
+  user      User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email     String?
+  ip        String?
+  createdAt DateTime          @default(now())
+
+  @@index([userId])
+  @@index([type])
+}

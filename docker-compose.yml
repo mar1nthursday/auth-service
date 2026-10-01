@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: auth_pass
+      POSTGRES_DB: auth_service
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  api:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://auth_user:auth_pass@db:5432/auth_service?schema=public
+      PORT: 3000
+      JWT_ACCESS_SECRET: dev_access_secret_change_me
+      TOTP_ENCRYPTION_KEY: "571f88d3838b2a4e8e1b35fed3c6b8ad09a5a4454bc37238e10d079c1a4b1b75"
+      CORS_ORIGIN: http://localhost:5173
+    ports:
+      - "3000:3000"
+
+volumes:
+  db_data:
